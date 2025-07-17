@@ -40,5 +40,5 @@
     - name: Report if reboot is required
       become: true
       ansible.builtin.reboot:
-        reboot_timeout: 10
+        reboot_timeout: 360
       when: reboot_required.stat.exists
