@@ -38,6 +38,6 @@
       register: reboot_required
 
     - name: Report if reboot is required
-      ansible.builtin.debug:
-        msg: "Reboot is required"
+      ansible.builtin.reboot:
+        force: yes
       when: reboot_required.stat.exists
