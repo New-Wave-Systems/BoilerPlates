@@ -2,10 +2,26 @@
 - hosts: all
   become: true
   tasks:
+
+    - name: Wait for APT lock to be released
+      shell: |
+        while fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+              fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || \
+              fuser /var/cache/apt/archives/lock >/dev/null 2>&1; do
+          echo "Waiting for APT lock..."
+          sleep 5
+        done
+      changed_when: false
+      become: true
+
     - name: Update APT package cache
       apt:
         update_cache: yes
+        cache_valid_time: 3600
+      become: true
 
-    - name: Upgrade all installed packages
+    - name: Upgrade all packages
       apt:
-        upgrade: yes
+        upgrade: dist
+        autoremove: yes
+      become: true
