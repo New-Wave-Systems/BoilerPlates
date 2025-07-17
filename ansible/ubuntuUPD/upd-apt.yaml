@@ -1,15 +1,28 @@
 ---
-- hosts: all
+- name: Update and upgrade packages on all hosts
+  hosts: all
   become: true
   become_method: sudo
   become_user: root
   tasks:
-    - name: Confirm privilege escalation is working
-      command: whoami
-      register: whoami_check
-      become: true
 
-    - debug:
-        msg: "Running as {{ whoami_check.stdout }}"
+    - name: Wait for APT lock to be released
+      shell: |
+        while fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+              fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
+              fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
+          echo "Waiting for other apt processes..."
+          sleep 5
+        done
+      changed_when: false
 
-    # Rest of your APT tasks...
+    - name: Update APT package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600  # 1 hour
+
+    - name: Upgrade all packages (dist-upgrade)
+      apt:
+        upgrade: dist
+        autoremove: yes
+        autoclean: yes
