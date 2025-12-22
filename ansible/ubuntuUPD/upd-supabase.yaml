@@ -1,0 +1,26 @@
+---
+- name: Update Supabase CLI and Restart
+  hosts: supabase_servers
+  become: false
+  vars:
+    supabase_project_dir: ~/your-project  # Directory with supabase/config.toml
+    
+  tasks:
+    - name: Stop Supabase
+      ansible.builtin.shell: supabase stop
+      args:
+        chdir: "{{ supabase_project_dir }}"
+      ignore_errors: true
+
+    - name: Upgrade Supabase via Homebrew
+      ansible.builtin.shell: brew upgrade supabase
+      
+    - name: Start Supabase
+      ansible.builtin.shell: supabase start
+      args:
+        chdir: "{{ supabase_project_dir }}"
+      register: start_result
+
+    - name: Display Supabase status
+      ansible.builtin.debug:
+        msg: "{{ start_result.stdout_lines }}"
